@@ -33,13 +33,17 @@ def home():
     with open("index.html", encoding="utf-8") as f:
         return f.read()
 
-
 # Маршрут для приёма данных с формы сайта
 @app.route("/send_request", methods=["POST"])
 def send_request():
-    name = request.form.get("name")
-    phone = request.form.get("phone")
-    problem = request.form.get("problem")
+    data = request.get_json()  # <-- получаем JSON, а не form
+
+    if not data:
+        return {"error": "Нет данных"}, 400
+
+    name = data.get("name")
+    phone = data.get("phone")
+    problem = data.get("message")
 
     # Отправляем данные админу в Telegram
     msg = (
@@ -50,7 +54,7 @@ def send_request():
     )
     bot.send_message(ADMIN_ID, msg, parse_mode="Markdown")
 
-    return "✅ Заявка успешно отправлена! Наш мастер свяжется с вами."
+    print(f"✅ Получена заявка с сайта: {name}, {phone}, {problem}")
 
 def run_flask():
     app.run(host="0.0.0.0", port=PORT)
