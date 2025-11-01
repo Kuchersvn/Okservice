@@ -12,9 +12,6 @@ load_dotenv()
 BOT_TOKEN = os.getenv("BOT_TOKEN")
 ADMIN_ID = int(os.getenv("ADMIN_ID"))
 
-print(f"BOT_TOKEN = {BOT_TOKEN}")
-bot = telebot.TeleBot(BOT_TOKEN)
-
 
 # === Подключение к БД ===
 conn = sqlite3.connect("bot.db", check_same_thread=False)
