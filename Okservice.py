@@ -18,15 +18,21 @@ PORT = int(os.getenv("PORT", 8080))  # <-- порт по умолчанию
 bot = telebot.TeleBot(BOT_TOKEN)
 
 # === Flask-сервер для Render ===
-from flask import Flask, request, render_template_string
+from flask import Flask, request, send_from_directory
 
 app = Flask(__name__)
 
-# Загружаем содержимое index.html
+# ✅ Разрешаем Flask отдавать статические файлы (например logo.png)
+@app.route('/<path:filename>')
+def serve_static(filename):
+    return send_from_directory('.', filename)
+
+# ✅ Главная страница
 @app.route('/')
 def home():
     with open("index.html", encoding="utf-8") as f:
         return f.read()
+
 
 # Маршрут для приёма данных с формы сайта
 @app.route("/send_request", methods=["POST"])
