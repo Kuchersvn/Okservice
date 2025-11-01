@@ -168,7 +168,7 @@
     <p>📞 <a href="tel:+77064295545">+7 (706) 429-55-45</a> | 💬 <a href="https://wa.me/7064295545" target="_blank">WhatsApp</a></p>
     <p>✈️ <a href="https://t.me/Fixuralsk" target="_blank">Telegram</a> | 📸 <a href="https://instagram.com/okservice_uralsk" target="_blank">Instagram</a></p>
     <p>🕓 Время работы: Пн–Вс 10:00–19:00</p>
-    <p>© 2025 OkService | <a href="https://okservice.kz" target="_blank">okservice.kz</a></p>
+    <p>© 2025 OkService | <a href="https://okservice.onrender.com" target="_blank">okservice.kz</a></p>
   </footer>
 
   <script>
@@ -214,6 +214,78 @@ function init() {
     map.geoObjects.add(placemark);
 }
 </script>
+
+<!-- 🔔 Уведомление -->
+<div id="notification" class="notification"></div>
+
+<script>
+  async function sendRequest() {
+    const name = document.getElementById('name').value.trim();
+    const phone = document.getElementById('phone').value.trim();
+    const message = document.getElementById('message').value.trim();
+
+    if (!name || !phone || !message) {
+      showNotification("⚠️ Пожалуйста, заполните все поля.", "error");
+      return;
+    }
+
+    try {
+      const res = await fetch("/send_request", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, phone, message })
+      });
+
+      if (res.ok) {
+        showNotification("✅ Заявка отправлена! Мы скоро свяжемся с вами.", "success");
+        document.getElementById('name').value = "";
+        document.getElementById('phone').value = "";
+        document.getElementById('message').value = "";
+      } else {
+        showNotification("❌ Ошибка при отправке. Попробуйте позже.", "error");
+      }
+    } catch (e) {
+      showNotification("⚠️ Ошибка соединения с сервером.", "error");
+    }
+  }
+
+  // 🔔 Показ уведомления
+  function showNotification(text, type) {
+    const notif = document.getElementById("notification");
+    notif.textContent = text;
+
+    notif.style.background = (type === "error")
+      ? "linear-gradient(90deg, #ff4d4d, #000)"
+      : "linear-gradient(90deg, #FFD700, #000)";
+
+    notif.classList.add("show");
+
+    setTimeout(() => notif.classList.remove("show"), 3000);
+  }
+</script>
+
+<style>
+  .notification {
+    position: fixed;
+    bottom: -80px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: linear-gradient(90deg, #FFD700, #000);
+    color: white;
+    padding: 15px 25px;
+    border-radius: 30px;
+    font-weight: 600;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+    opacity: 0;
+    transition: all 0.5s ease;
+    z-index: 9999;
+  }
+
+  .notification.show {
+    bottom: 30px;
+    opacity: 1;
+  }
+</style>
 
 </body>
 </html>
