@@ -36,11 +36,7 @@ def home():
 # Маршрут для приёма данных с формы сайта
 @app.route("/send_request", methods=["POST"])
 def send_request():
-    data = request.get_json()  # <-- получаем JSON, а не form
-
-    if not data:
-        return {"error": "Нет данных"}, 400
-
+    data = request.get_json(force=True)
     name = data.get("name")
     phone = data.get("phone")
     problem = data.get("message")
