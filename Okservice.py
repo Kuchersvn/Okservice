@@ -5,14 +5,27 @@ from datetime import datetime
 import os
 from openpyxl import Workbook
 from dotenv import load_dotenv
+from flask import Flask  # <-- добавили Flask
+import threading
+
 
 # === Загрузка переменных из .env ===
 load_dotenv()
 BOT_TOKEN = os.getenv("BOT_TOKEN")
 ADMIN_ID = int(os.getenv("ADMIN_ID"))
-
+PORT = int(os.getenv("PORT", 8080))  # <-- порт по умолчанию
 
 bot = telebot.TeleBot(BOT_TOKEN)
+
+# === Flask-сервер для Render ===
+app = Flask(__name__)
+
+@app.route('/')
+def home():
+    return "🤖 Telegram Bot is running on Render!"
+
+def run_flask():
+    app.run(host="0.0.0.0", port=PORT)
 
 # === Подключение к БД ===
 conn = sqlite3.connect("bot.db", check_same_thread=False)
