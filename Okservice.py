@@ -42,12 +42,21 @@ def send_request():
     phone = data.get("phone")
     problem = data.get("message")
 
+    # ✅ Сохраняем заявку в базу данных
+    date = datetime.now().strftime("%Y-%m-%d %H:%M")
+    cursor.execute(
+        "INSERT INTO requests (name, phone, problem, date) VALUES (?, ?, ?, ?)",
+        (name, phone, problem, date)
+    )
+    conn.commit()
+
     # Отправляем данные админу в Telegram
     msg = (
         f"📬 *Новая заявка с сайта!*\n"
         f"👤 Имя: {name}\n"
         f"📞 Телефон: {phone}\n"
         f"💬 Проблема: {problem}"
+        f"🕒 Время: {date}"
     )
     bot.send_message(ADMIN_ID, msg, parse_mode="Markdown")
 
