@@ -8,10 +8,11 @@ from dotenv import load_dotenv
 
 # === Загрузка переменных из .env ===
 load_dotenv()
-
 BOT_TOKEN = os.getenv("BOT_TOKEN")
 ADMIN_ID = int(os.getenv("ADMIN_ID"))
 
+
+bot = telebot.TeleBot(BOT_TOKEN)
 
 # === Подключение к БД ===
 conn = sqlite3.connect("bot.db", check_same_thread=False)
