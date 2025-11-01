@@ -133,7 +133,7 @@
 <body>
 
   <header>
-    <img src="logo.png" alt="OkService Logo">
+    <img src="logo.png" alt="OkService" class="Logo">
     <h1>OkService — ремонт компьютеров и ноутбуков</h1>
   </header>
 
@@ -198,6 +198,22 @@
       }
     }
   </script>
+
+<!-- Подключаем Яндекс.Карты -->
+<script src="89365d8b-7ca4-4097-aa3f-917b3704ac50"></script>
+<script>
+ymaps.ready(init);
+function init() {
+    var map = new ymaps.Map("map", {
+        center: [51.221450, 51.363653], // координаты Уральска
+        zoom: 16
+    });
+    var placemark = new ymaps.Placemark([51.221450, 51.363653], {
+        balloonContent: "Ок Service — пр. Н. Назарбаева, 240/1"
+    });
+    map.geoObjects.add(placemark);
+}
+</script>
 
 </body>
 </html>
