@@ -351,7 +351,7 @@ def handle_text(message):
     elif "связаться" in text or "контакт" in text:
         markup = types.InlineKeyboardMarkup(row_width=2)
         markup.add(
-            types.InlineKeyboardButton("📞 Позвонить", url="https://t.me/share/url?url=tel:+79991234567"),
+            types.InlineKeyboardButton("📞 Позвонить", url="https://t.me/share/url?url=tel:+7064295545"),
             types.InlineKeyboardButton("💬 WhatsApp", url="https://wa.me/7064295545"),
             types.InlineKeyboardButton("✈️ Telegram", url="https://t.me/@Fixuralsk"),
             types.InlineKeyboardButton("📸 Instagram", url="https://instagram.com/okservice_uralsk"),
