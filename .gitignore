@@ -1,0 +1,7 @@
+# Не загружать чувствительные файлы
+.env
+bot.db
+requests.xlsx
+__pycache__/
+*.pyc
+photos/
