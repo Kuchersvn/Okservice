@@ -1,2 +1,3 @@
 pyTelegramBotAPI
 openpyxl
+python-dotenv
