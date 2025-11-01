@@ -355,7 +355,7 @@ def handle_text(message):
             types.InlineKeyboardButton("💬 WhatsApp", url="https://wa.me/7064295545"),
             types.InlineKeyboardButton("✈️ Telegram", url="https://t.me/@Fixuralsk"),
             types.InlineKeyboardButton("📸 Instagram", url="https://instagram.com/okservice_uralsk"),
-            types.InlineKeyboardButton("🌐 Сайт", url="https://pcservice.ru")
+            types.InlineKeyboardButton("🌐 Сайт", url="https://okservice.onrender.com")
         )
 
         bot.send_message(
