@@ -1,7 +1,24 @@
-# Не загружать чувствительные файлы
-.env
-bot.db
-requests.xlsx
+# Python
 __pycache__/
 *.pyc
-photos/
+*.pyo
+*.pyd
+*.sqlite3
+*.db
+
+# Virtual environment
+venv/
+.env/
+.venv/
+
+# IDE / Editors
+.idea/
+.vscode/
+*.swp
+
+# Logs and temp files
+*.log
+tmp/
+*.bak
+*.old
+
