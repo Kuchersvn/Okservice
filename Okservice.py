@@ -18,14 +18,37 @@ PORT = int(os.getenv("PORT", 8080))  # <-- порт по умолчанию
 bot = telebot.TeleBot(BOT_TOKEN)
 
 # === Flask-сервер для Render ===
+from flask import Flask, request, render_template_string
+
 app = Flask(__name__)
 
+# Загружаем содержимое index.html
 @app.route('/')
 def home():
-    return "🤖 Telegram Bot is running on Render!"
+    with open("index.html", encoding="utf-8") as f:
+        return f.read()
+
+# Маршрут для приёма данных с формы сайта
+@app.route("/send_request", methods=["POST"])
+def send_request():
+    name = request.form.get("name")
+    phone = request.form.get("phone")
+    problem = request.form.get("problem")
+
+    # Отправляем данные админу в Telegram
+    msg = (
+        f"📬 *Новая заявка с сайта!*\n"
+        f"👤 Имя: {name}\n"
+        f"📞 Телефон: {phone}\n"
+        f"💬 Проблема: {problem}"
+    )
+    bot.send_message(ADMIN_ID, msg, parse_mode="Markdown")
+
+    return "✅ Заявка успешно отправлена! Наш мастер свяжется с вами."
 
 def run_flask():
     app.run(host="0.0.0.0", port=PORT)
+
 
 # === Подключение к БД ===
 conn = sqlite3.connect("bot.db", check_same_thread=False)
