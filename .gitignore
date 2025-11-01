@@ -1,24 +1,7 @@
-# Python
+# Не добавлять токены и базы данных
+.env
+bot.db
+requests.xlsx
 __pycache__/
 *.pyc
 *.pyo
-*.pyd
-*.sqlite3
-*.db
-
-# Virtual environment
-venv/
-.env/
-.venv/
-
-# IDE / Editors
-.idea/
-.vscode/
-*.swp
-
-# Logs and temp files
-*.log
-tmp/
-*.bak
-*.old
-
