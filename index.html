@@ -188,12 +188,14 @@
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ name, phone, message })
         });
-        if (res.ok) {
-          alert("✅ Заявка отправлена! Мы скоро свяжемся с вами.");
-        } else {
-          alert("❌ Ошибка при отправке. Попробуйте позже.");
-        }
-      } catch (e) {
+        const result = await res.json().catch(() => ({}));
+
+if (res.ok && result.status === "success") {
+  alert("✅ Заявка успешно отправлена! Мы скоро свяжемся с вами.");
+} else {
+  alert("❌ Ошибка при отправке. Попробуйте позже.");
+}
+  } catch (e) {
         alert("⚠️ Ошибка соединения с сервером.");
       }
     }
