@@ -361,5 +361,13 @@ def handle_text(message):
 
 
 # === Запуск ===
-print("🤖 Бот запущен и готов к работе...")
-bot.polling(none_stop=True)
+def run_bot():
+    print("🤖 Бот запущен и готов к работе...")
+    bot.infinity_polling(timeout=60, long_polling_timeout=30)
+
+if __name__ == "__main__":
+    # Запускаем Flask в отдельном потоке
+    threading.Thread(target=run_flask).start()
+    # Запускаем Telegram-бота
+    run_bot()
+
