@@ -5,8 +5,9 @@ from datetime import datetime
 import os
 from openpyxl import Workbook
 from dotenv import load_dotenv
-from flask import Flask  # <-- добавили Flask
+from flask import Flask, request, send_from_directory, jsonify
 import threading
+
 
 
 # === Загрузка переменных из .env ===
@@ -51,6 +52,10 @@ def send_request():
     bot.send_message(ADMIN_ID, msg, parse_mode="Markdown")
 
     print(f"✅ Получена заявка с сайта: {name}, {phone}, {problem}")
+
+    # 💡 Возвращаем JSON-ответ, чтобы JS знал, что всё прошло успешно
+    return jsonify({"status": "success"}), 200
+
 
 def run_flask():
     app.run(host="0.0.0.0", port=PORT)
