@@ -305,9 +305,11 @@ def get_problem(message, user_name, phone):
     problem = message.text
     date = datetime.now().strftime("%Y-%m-%d %H:%M")
 
-    cursor.execute("INSERT INTO requests (name, phone, problem, date) VALUES (?, ?, ?, ?)",
-                   (user_name, phone, problem, date))
-    conn.commit()
+    cursor.execute(
+        "INSERT INTO requests (name, phone, problem, date) VALUES (%s, %s, %s, %s)",
+        (user_name, phone, problem, date)
+    )
+    connection.commit()
 
     bot.send_message(
         message.chat.id,
