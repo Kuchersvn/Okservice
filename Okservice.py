@@ -1,6 +1,5 @@
 import telebot
 from telebot import types
-import sqlite3
 from datetime import datetime
 import os
 from openpyxl import Workbook
@@ -69,20 +68,28 @@ def send_request():
 def run_flask():
     app.run(host="0.0.0.0", port=PORT)
 
+ #Подключение к бд
+import psycopg2
+from psycopg2.extras import RealDictCursor
 
-# === Подключение к БД ===
-conn = sqlite3.connect("bot.db", check_same_thread=False)
+# Подключение к PostgreSQL вместо SQLite
+DATABASE_URL = os.getenv("DATABASE_URL")
+
+conn = psycopg2.connect(DATABASE_URL, cursor_factory=RealDictCursor)
 cursor = conn.cursor()
+
+# Создаём таблицу, если её нет
 cursor.execute("""
 CREATE TABLE IF NOT EXISTS requests (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    id SERIAL PRIMARY KEY,
     name TEXT,
     phone TEXT,
     problem TEXT,
     date TEXT
-)
+);
 """)
 conn.commit()
+
 
 # === Главное меню ===
 def main_menu():
