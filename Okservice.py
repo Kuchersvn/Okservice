@@ -58,6 +58,14 @@ def send_request():
         phone = data.get("phone")
         problem = data.get("message")
 
+        # === Telegram Webhook ===
+        @app.route(f"/{BOT_TOKEN}", methods=["POST"])
+        def telegram_webhook():
+            json_str = request.get_data().decode("UTF-8")
+            update = telebot.types.Update.de_json(json_str)
+            bot.process_new_updates([update])
+            return "!", 200
+
         # Сохраняем заявку в БД
         with get_db_connection() as conn:
             with conn.cursor() as cur:
@@ -85,8 +93,13 @@ def send_request():
 
 
 def run_flask():
-    init_db()  # Проверяем/создаём таблицу при запуске
+    init_db()  # Проверяем/создаём таблицу
+    bot.remove_webhook()
+    webhook_url = f"https://{os.getenv('RENDER_EXTERNAL_HOSTNAME')}/{BOT_TOKEN}"
+    bot.set_webhook(url=webhook_url)
+    print(f"✅ Webhook установлен: {webhook_url}")
     app.run(host="0.0.0.0", port=PORT)
+
 
 
 # Подключение к PostgreSQL
@@ -438,13 +451,10 @@ def handle_text(message):
 
 
 # === Запуск ===
-def run_bot():
-    print("🤖 Бот запущен и готов к работе...")
-    bot.infinity_polling(timeout=60, long_polling_timeout=30)
+#def run_bot():
+    #print("🤖 Бот запущен и готов к работе...")
+    #bot.infinity_polling(timeout=60, long_polling_timeout=30)
 
 if __name__ == "__main__":
-    # Запускаем Flask в отдельном потоке
-    threading.Thread(target=run_flask).start()
-    # Запускаем Telegram-бота
-    run_bot()
+    run_flask()
 
