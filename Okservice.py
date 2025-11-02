@@ -39,21 +39,14 @@ def home():
 
 # === Создание таблицы заявок, если её нет ===
 def init_db():
-    conn = get_db_connection()
-    cur = conn.cursor()
-    cur.execute("""
-        CREATE TABLE IF NOT EXISTS requests (
-            id SERIAL PRIMARY KEY,
-            name TEXT NOT NULL,
-            phone TEXT NOT NULL,
-            problem TEXT,
-            source TEXT DEFAULT 'unknown',
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-        );
-    """)
-    conn.commit()
-    cur.close()
-    conn.close()
+    with get_db_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute("""
+                        INSERT INTO requests (name, phone, problem, source)
+                        VALUES (%s, %s, %s, %s);
+                        """, (name, phone, problem, "site"))
+            conn.commit()
+
     print("✅ Таблица requests проверена/создана")
 
 # === Маршрут для приёма данных с формы сайта ===
@@ -66,15 +59,13 @@ def send_request():
         problem = data.get("message")
 
         # Сохраняем заявку в БД
-        conn = get_db_connection()
-        cur = conn.cursor()
-        cur.execute("""
-            INSERT INTO requests (name, phone, problem, source)
-            VALUES (%s, %s, %s, %s);
-        """, (name, phone, problem, "site"))
-        conn.commit()
-        cur.close()
-        conn.close()
+        with get_db_connection() as conn:
+            with conn.cursor() as cur:
+                cur.execute(
+                    "INSERT INTO requests (name, phone, problem, date) VALUES (%s, %s, %s, %s)",
+                    (user_name, phone, problem, date)
+                )
+                conn.commit()
 
         # Отправляем уведомление админу в Telegram
         msg = (
@@ -186,8 +177,10 @@ def admin_panel(message):
 # === Админ: просмотр всех заявок ===
 @bot.message_handler(func=lambda m: is_admin(m) and "все заявки" in m.text.lower())
 def show_all_requests(message):
-    cursor.execute("SELECT * FROM requests ORDER BY id DESC")
-    rows = cursor.fetchall()
+    with get_db_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute("SELECT * FROM requests ORDER BY id DESC")
+            rows = cur.fetchall()
 
     if not rows:
         bot.send_message(message.chat.id, "📭 Заявок пока нет.")
@@ -214,7 +207,7 @@ def find_request_by_name(message):
 
 def admin_search_name(message):
     name = message.text.strip()
-    cursor.execute("SELECT * FROM requests WHERE name LIKE ?", (f"%{name}%",))
+    cursor.execute("SELECT * FROM requests WHERE name ILIKE %s", (f"%{name}%",))
     rows = cursor.fetchall()
 
     if not rows:
@@ -309,7 +302,7 @@ def get_problem(message, user_name, phone):
         "INSERT INTO requests (name, phone, problem, date) VALUES (%s, %s, %s, %s)",
         (user_name, phone, problem, date)
     )
-    connection.commit()
+    conn.commit()
 
     bot.send_message(
         message.chat.id,
