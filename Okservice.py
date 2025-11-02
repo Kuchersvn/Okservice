@@ -7,21 +7,23 @@ from dotenv import load_dotenv
 from flask import Flask, request, send_from_directory, jsonify
 import threading
 import psycopg2
-from psycopg2.extras   #нужно для работы с PostgreSQL
-import RealDictCursor
-
+from psycopg2.extras import RealDictCursor  # нужно для работы с PostgreSQL
 
 # === Загрузка переменных из .env ===
 load_dotenv()
 BOT_TOKEN = os.getenv("BOT_TOKEN")
 ADMIN_ID = int(os.getenv("ADMIN_ID"))
-PORT = int(os.getenv("PORT", 8080))  # <-- порт по умолчанию
+PORT = int(os.getenv("PORT", 8080))
+DATABASE_URL = os.getenv("DATABASE_URL")  # PostgreSQL URL из Render
+
+# === Подключение к PostgreSQL ===
+def get_db_connection():
+    return psycopg2.connect(DATABASE_URL, sslmode="require", cursor_factory=RealDictCursor)
 
 bot = telebot.TeleBot(BOT_TOKEN)
 
-# === Flask-сервер для Render ===
-from flask import Flask, request, send_from_directory
 
+# === Flask-сервер для Render ===
 app = Flask(__name__)
 
 # ✅ Разрешаем Flask отдавать статические файлы (например logo.png)
@@ -35,49 +37,68 @@ def home():
     with open("index.html", encoding="utf-8") as f:
         return f.read()
 
-# Маршрут для приёма данных с формы сайта
-@app.route("/send_request", methods=["POST"])
-def send_request():
-    data = request.get_json(force=True)
-    name = data.get("name")
-    phone = data.get("phone")
-    problem = data.get("message")
-
-    # ✅ Сохраняем заявку в PostgreSQL
-    conn = get_connection()
+# === Создание таблицы заявок, если её нет ===
+def init_db():
+    conn = get_db_connection()
     cur = conn.cursor()
-    cur.execute(
-        "INSERT INTO requests (name, phone, problem) VALUES (%s, %s, %s)",
-        (name, phone, problem)
-    )
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS requests (
+            id SERIAL PRIMARY KEY,
+            name TEXT NOT NULL,
+            phone TEXT NOT NULL,
+            problem TEXT,
+            source TEXT DEFAULT 'unknown',
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        );
+    """)
     conn.commit()
     cur.close()
     conn.close()
+    print("✅ Таблица requests проверена/создана")
 
-    # Отправляем данные админу в Telegram
-    msg = (
-        f"📬 *Новая заявка с сайта!*\n"
-        f"👤 Имя: {name}\n"
-        f"📞 Телефон: {phone}\n"
-        f"💬 Проблема: {problem}"
-        f"🕒 Время: {date}"
-    )
-    bot.send_message(ADMIN_ID, msg, parse_mode="Markdown")
+# === Маршрут для приёма данных с формы сайта ===
+@app.route("/send_request", methods=["POST"])
+def send_request():
+    try:
+        data = request.get_json(force=True)
+        name = data.get("name")
+        phone = data.get("phone")
+        problem = data.get("message")
 
-    print(f"✅ Получена заявка с сайта: {name}, {phone}, {problem}")
+        # Сохраняем заявку в БД
+        conn = get_db_connection()
+        cur = conn.cursor()
+        cur.execute("""
+            INSERT INTO requests (name, phone, problem, source)
+            VALUES (%s, %s, %s, %s);
+        """, (name, phone, problem, "site"))
+        conn.commit()
+        cur.close()
+        conn.close()
 
-    # 💡 Возвращаем JSON-ответ, чтобы JS знал, что всё прошло успешно
-    return jsonify({"status": "success"}), 200
+        # Отправляем уведомление админу в Telegram
+        msg = (
+            f"📬 *Новая заявка с сайта!*\n"
+            f"👤 Имя: {name}\n"
+            f"📞 Телефон: {phone}\n"
+            f"💬 Проблема: {problem}"
+        )
+        bot.send_message(ADMIN_ID, msg, parse_mode="Markdown")
+
+        print(f"✅ Заявка сохранена: {name}, {phone}, {problem}")
+        return jsonify({"status": "success"}), 200
+
+    except Exception as e:
+        print(f"❌ Ошибка при обработке заявки: {e}")
+        return jsonify({"status": "error", "message": str(e)}), 500
 
 
 def run_flask():
+    init_db()  # Проверяем/создаём таблицу при запуске
     app.run(host="0.0.0.0", port=PORT)
 
- #Подключение к бд
-import psycopg2
-from psycopg2.extras import RealDictCursor
 
-# Подключение к PostgreSQL вместо SQLite
+# Подключение к PostgreSQL
 DATABASE_URL = os.getenv("DATABASE_URL")
 try:
     conn_test = psycopg2.connect(DATABASE_URL)
