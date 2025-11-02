@@ -226,10 +226,10 @@ def find_request_by_name(message):
 
 
 def admin_search_name(message):
-    name = message.text.strip()
+    search_name = message.text.strip()
     with get_db_connection() as conn:
         with conn.cursor() as cur:
-            cur.execute("SELECT * FROM requests WHERE name ILIKE %s", (f"%{name}%",))
+            cur.execute("SELECT * FROM requests WHERE name ILIKE %s", (f"%{search_name}%",))
             rows = cur.fetchall()
 
     if not rows:
@@ -237,15 +237,16 @@ def admin_search_name(message):
         return
 
     for row in rows:
-        req_id, name, phone, problem, date = row
         bot.send_message(
             message.chat.id,
-            f"🆔 Заявка №{req_id}\n"
-            f"👤 Имя: {name}\n"
-            f"📞 Телефон: {phone}\n"
-            f"💬 Проблема: {problem}\n"
-            f"🕒 Дата: {date}"
+            f"🆔 Заявка №{row['id']}\n"
+            f"👤 Имя: {row['name']}\n"
+            f"📞 Телефон: {row['phone']}\n"
+            f"💬 Проблема: {row['problem']}\n"
+            f"🕒 Дата: {row['created_at']}\n"
+            f"🌐 Источник: {row['source']}"
         )
+
 
 
 # === Админ: экспорт в Excel ===
@@ -263,16 +264,17 @@ def export_to_excel(message):
     wb = Workbook()
     ws = wb.active
     ws.title = "Заявки"
-    ws.append(["ID", "Имя", "Телефон", "Проблема", "Дата"])
+    ws.append(["ID", "Имя", "Телефон", "Проблема", "Дата", "Источник"])
 
     for row in rows:
-        ws.append(row)
+        ws.append([row["id"], row["name"], row["phone"], row["problem"], str(row["created_at"]), row["source"]])
 
     file_path = os.path.join(os.path.dirname(__file__), "requests.xlsx")
     wb.save(file_path)
 
     with open(file_path, "rb") as file:
         bot.send_document(message.chat.id, file, caption="📤 Все заявки экспортированы в Excel!")
+
 
 
 # === Админ: очистка базы ===
