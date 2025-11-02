@@ -197,7 +197,7 @@ def show_all_requests(message):
     try:
         with get_db_connection() as conn:
             with conn.cursor() as cur:
-                cur.execute("SELECT id, name, phone, problem, date, source FROM requests ORDER BY id DESC")
+                cur.execute("SELECT id, name, phone, problem, created_at, source FROM requests ORDER BY id DESC")
                 rows = cur.fetchall()
 
         if not rows:
@@ -211,7 +211,7 @@ def show_all_requests(message):
                 f"👤 Имя: {row['name']}\n"
                 f"📞 Телефон: {row['phone']}\n"
                 f"💬 Проблема: {row['problem']}\n"
-                f"🕒 Дата: {row['date']}\n"
+                f"🕒 Дата: {row['created_at']}\n"
                 f"🌐 Источник: {row['source']}"
             )
     except Exception as e:
@@ -253,7 +253,7 @@ def admin_search_name(message):
 def export_to_excel(message):
     with get_db_connection() as conn:
         with conn.cursor() as cur:
-            cur.execute("SELECT id, name, phone, problem, date, source FROM requests ORDER BY id DESC")
+            cur.execute("SELECT id, name, phone, problem, created_at, source FROM requests ORDER BY id DESC")
             rows = cur.fetchall()
 
     if not rows:
