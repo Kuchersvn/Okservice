@@ -343,6 +343,7 @@ def get_problem(message, user_name, phone):
                     "INSERT INTO requests (name, phone, problem, date, source) VALUES (%s, %s, %s, %s, %s)",
                     (user_name, phone, problem, date, "telegram")
                 )
+
                 conn.commit()
 
         bot.send_message(
