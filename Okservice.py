@@ -75,6 +75,12 @@ from psycopg2.extras import RealDictCursor
 
 # Подключение к PostgreSQL вместо SQLite
 DATABASE_URL = os.getenv("DATABASE_URL")
+try:
+    conn_test = psycopg2.connect(DATABASE_URL)
+    conn_test.close()
+    print("✅ Успешное подключение к PostgreSQL!")
+except Exception as e:
+    print("❌ Ошибка подключения к PostgreSQL:", e)
 
 conn = psycopg2.connect(DATABASE_URL, cursor_factory=RealDictCursor)
 cursor = conn.cursor()
