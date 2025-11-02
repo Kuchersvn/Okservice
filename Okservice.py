@@ -7,7 +7,7 @@ from dotenv import load_dotenv
 from flask import Flask, request, send_from_directory, jsonify
 import threading
 import psycopg2
-from psycopg2.extras import RealDictCursor  #нужно для  работы с PostgreSQL
+from psycopg2.extras   #нужно для работы с PostgreSQL
 
 
 # === Загрузка переменных из .env ===
