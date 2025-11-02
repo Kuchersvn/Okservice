@@ -42,13 +42,16 @@ def send_request():
     phone = data.get("phone")
     problem = data.get("message")
 
-    # ✅ Сохраняем заявку в базу данных
-    date = datetime.now().strftime("%Y-%m-%d %H:%M")
-    cursor.execute(
-        "INSERT INTO requests (name, phone, problem, date) VALUES (?, ?, ?, ?)",
-        (name, phone, problem, date)
+    # ✅ Сохраняем заявку в PostgreSQL
+    conn = get_connection()
+    cur = conn.cursor()
+    cur.execute(
+        "INSERT INTO requests (name, phone, problem) VALUES (%s, %s, %s)",
+        (name, phone, problem)
     )
     conn.commit()
+    cur.close()
+    conn.close()
 
     # Отправляем данные админу в Telegram
     msg = (
