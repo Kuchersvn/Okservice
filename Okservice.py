@@ -60,13 +60,15 @@ def init_db():
 def send_request():
     try:
         data = request.get_json(force=True)
-        print("📥 Получены данные из формы:", data)
-
         name = data.get("name")
         phone = data.get("phone")
         problem = data.get("message")
 
-        # Сохраняем заявку в PostgreSQL
+        # Проверяем, что данные есть
+        if not name or not phone:
+            return jsonify({"status": "error", "message": "Имя и телефон обязательны"}), 400
+
+        # Сохраняем заявку в БД
         with get_db_connection() as conn:
             with conn.cursor() as cur:
                 cur.execute("""
@@ -88,10 +90,9 @@ def send_request():
         return jsonify({"status": "success"}), 200
 
     except Exception as e:
-        import traceback
-        traceback.print_exc()
         print(f"❌ Ошибка при обработке заявки: {e}")
         return jsonify({"status": "error", "message": str(e)}), 500
+
 
 
 # === Маршрут для Telegram Webhook ===
