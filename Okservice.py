@@ -38,6 +38,7 @@ def home():
         return f.read()
 
 # === Создание таблицы заявок, если её нет ===
+# === Создание таблицы заявок, если её нет ===
 def init_db():
     with get_db_connection() as conn:
         with conn.cursor() as cur:
@@ -53,6 +54,7 @@ def init_db():
             """)
             conn.commit()
     print("✅ Таблица requests проверена/создана")
+
 
 
 # === Маршрут для приёма данных с формы сайта ===
@@ -127,20 +129,6 @@ try:
 except Exception as e:
     print("❌ Ошибка подключения к PostgreSQL:", e)
 
-conn = psycopg2.connect(DATABASE_URL, cursor_factory=RealDictCursor)
-cursor = conn.cursor()
-
-# Создаём таблицу, если её нет
-cursor.execute("""
-CREATE TABLE IF NOT EXISTS requests (
-    id SERIAL PRIMARY KEY,
-    name TEXT,
-    phone TEXT,
-    problem TEXT,
-    date TEXT
-);
-""")
-conn.commit()
 
 
 # === Главное меню ===
@@ -336,15 +324,13 @@ def get_problem(message, user_name, phone):
     problem = message.text
     date = datetime.now().strftime("%Y-%m-%d %H:%M")
 
-    try:
-        with get_db_connection() as conn:
-            with conn.cursor() as cur:
-                cur.execute(
-                    "INSERT INTO requests (name, phone, problem, date, source) VALUES (%s, %s, %s, %s, %s)",
-                    (user_name, phone, problem, date, "telegram")
-                )
-
-                conn.commit()
+    with get_db_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute("""
+                        INSERT INTO requests (name, phone, problem, date, source)
+                        VALUES (%s, %s, %s, NOW(), %s)
+                        """, (user_name, phone, problem, "telegram"))
+            conn.commit()
 
         bot.send_message(
             message.chat.id,
