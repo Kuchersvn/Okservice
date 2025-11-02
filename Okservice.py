@@ -8,6 +8,7 @@ from flask import Flask, request, send_from_directory, jsonify
 import threading
 import psycopg2
 from psycopg2.extras   #нужно для работы с PostgreSQL
+import RealDictCursor
 
 
 # === Загрузка переменных из .env ===
