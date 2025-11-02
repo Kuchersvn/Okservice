@@ -60,25 +60,19 @@ def init_db():
 def send_request():
     try:
         data = request.get_json(force=True)
+        print("📥 Получены данные из формы:", data)
+
         name = data.get("name")
         phone = data.get("phone")
         problem = data.get("message")
 
-        # === Telegram Webhook ===
-        @app.route(f"/{BOT_TOKEN}", methods=["POST"])
-        def telegram_webhook():
-            json_str = request.get_data().decode("UTF-8")
-            update = telebot.types.Update.de_json(json_str)
-            bot.process_new_updates([update])
-            return "!", 200
-
-        # Сохраняем заявку в БД
+        # Сохраняем заявку в PostgreSQL
         with get_db_connection() as conn:
             with conn.cursor() as cur:
-                cur.execute(
-                    "INSERT INTO requests (name, phone, problem, date) VALUES (%s, %s, %s, %s)",
-                    (user_name, phone, problem, date)
-                )
+                cur.execute("""
+                    INSERT INTO requests (name, phone, problem, source)
+                    VALUES (%s, %s, %s, %s);
+                """, (name, phone, problem, "site"))
                 conn.commit()
 
         # Отправляем уведомление админу в Telegram
@@ -94,8 +88,23 @@ def send_request():
         return jsonify({"status": "success"}), 200
 
     except Exception as e:
+        import traceback
+        traceback.print_exc()
         print(f"❌ Ошибка при обработке заявки: {e}")
         return jsonify({"status": "error", "message": str(e)}), 500
+
+
+# === Маршрут для Telegram Webhook ===
+@app.route(f"/{BOT_TOKEN}", methods=["POST"])
+def telegram_webhook():
+    try:
+        json_str = request.get_data().decode("UTF-8")
+        update = telebot.types.Update.de_json(json_str)
+        bot.process_new_updates([update])
+    except Exception as e:
+        print(f"❌ Ошибка Webhook: {e}")
+    return "OK", 200
+
 
 
 def run_flask():
