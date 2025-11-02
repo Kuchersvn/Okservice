@@ -324,11 +324,12 @@ def get_problem(message, user_name, phone):
     problem = message.text
     date = datetime.now().strftime("%Y-%m-%d %H:%M")
 
-    with get_db_connection() as conn:
-        with conn.cursor() as cur:
-            cur.execute("""
-                        INSERT INTO requests (name, phone, problem, date, source)
-                        VALUES (%s, %s, %s, NOW(), %s)
+    try:
+       with get_db_connection() as conn:
+           with conn.cursor() as cur:
+               cur.execute("""
+                   INSERT INTO requests (name, phone, problem, date, source)
+                   VALUES (%s, %s, %s, NOW(), %s)
                         """, (user_name, phone, problem, "telegram"))
             conn.commit()
 
