@@ -42,12 +42,18 @@ def init_db():
     with get_db_connection() as conn:
         with conn.cursor() as cur:
             cur.execute("""
-                        INSERT INTO requests (name, phone, problem, source)
-                        VALUES (%s, %s, %s, %s);
-                        """, (name, phone, problem, "site"))
+                CREATE TABLE IF NOT EXISTS requests (
+                    id SERIAL PRIMARY KEY,
+                    name TEXT NOT NULL,
+                    phone TEXT NOT NULL,
+                    problem TEXT,
+                    source TEXT DEFAULT 'unknown',
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                );
+            """)
             conn.commit()
-
     print("✅ Таблица requests проверена/создана")
+
 
 # === Маршрут для приёма данных с формы сайта ===
 @app.route("/send_request", methods=["POST"])
