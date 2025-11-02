@@ -206,25 +206,28 @@ def admin_panel(message):
 # === Админ: просмотр всех заявок ===
 @bot.message_handler(func=lambda m: is_admin(m) and "все заявки" in m.text.lower())
 def show_all_requests(message):
-    with get_db_connection() as conn:
-        with conn.cursor() as cur:
-            cur.execute("SELECT * FROM requests ORDER BY id DESC")
-            rows = cur.fetchall()
+    try:
+        with get_db_connection() as conn:
+            with conn.cursor() as cur:
+                cur.execute("SELECT id, name, phone, problem, date, source FROM requests ORDER BY id DESC")
+                rows = cur.fetchall()
 
-    if not rows:
-        bot.send_message(message.chat.id, "📭 Заявок пока нет.")
-        return
+        if not rows:
+            bot.send_message(message.chat.id, "📭 Заявок пока нет.")
+            return
 
-    for row in rows:
-        req_id, name, phone, problem, date = row
-        bot.send_message(
-            message.chat.id,
-            f"🆔 Заявка №{req_id}\n"
-            f"👤 Имя: {name}\n"
-            f"📞 Телефон: {phone}\n"
-            f"💬 Проблема: {problem}\n"
-            f"🕒 Дата: {date}"
-        )
+        for row in rows:
+            bot.send_message(
+                message.chat.id,
+                f"🆔 Заявка №{row['id']}\n"
+                f"👤 Имя: {row['name']}\n"
+                f"📞 Телефон: {row['phone']}\n"
+                f"💬 Проблема: {row['problem']}\n"
+                f"🕒 Дата: {row['date']}\n"
+                f"🌐 Источник: {row['source']}"
+            )
+    except Exception as e:
+        bot.send_message(message.chat.id, f"❌ Ошибка при получении заявок: {e}")
 
 
 # === Админ: поиск по имени ===
@@ -236,8 +239,10 @@ def find_request_by_name(message):
 
 def admin_search_name(message):
     name = message.text.strip()
-    cursor.execute("SELECT * FROM requests WHERE name ILIKE %s", (f"%{name}%",))
-    rows = cursor.fetchall()
+    with get_db_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute("SELECT * FROM requests WHERE name ILIKE %s", (f"%{name}%",))
+            rows = cur.fetchall()
 
     if not rows:
         bot.send_message(message.chat.id, "❌ Ничего не найдено.")
@@ -258,8 +263,10 @@ def admin_search_name(message):
 # === Админ: экспорт в Excel ===
 @bot.message_handler(func=lambda m: is_admin(m) and "экспорт" in m.text.lower())
 def export_to_excel(message):
-    cursor.execute("SELECT * FROM requests ORDER BY id DESC")
-    rows = cursor.fetchall()
+    with get_db_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute("SELECT id, name, phone, problem, date, source FROM requests ORDER BY id DESC")
+            rows = cur.fetchall()
 
     if not rows:
         bot.send_message(message.chat.id, "📭 Нет данных для экспорта.")
@@ -294,8 +301,10 @@ def clear_database(message):
 @bot.callback_query_handler(func=lambda call: call.data in ["confirm_clear", "cancel_clear"])
 def clear_callback(call):
     if call.data == "confirm_clear":
-        cursor.execute("DELETE FROM requests")
-        conn.commit()
+        with get_db_connection() as conn:
+            with conn.cursor() as cur:
+                cur.execute("DELETE FROM requests")
+                conn.commit()
         bot.send_message(call.message.chat.id, "🧹 Все заявки успешно удалены!")
     else:
         bot.send_message(call.message.chat.id, "❌ Отмена очистки базы.")
@@ -327,27 +336,40 @@ def get_problem(message, user_name, phone):
     problem = message.text
     date = datetime.now().strftime("%Y-%m-%d %H:%M")
 
-    cursor.execute(
-        "INSERT INTO requests (name, phone, problem, date) VALUES (%s, %s, %s, %s)",
-        (user_name, phone, problem, date)
-    )
-    conn.commit()
+    try:
+        with get_db_connection() as conn:
+            with conn.cursor() as cur:
+                cur.execute(
+                    "INSERT INTO requests (name, phone, problem, date, source) VALUES (%s, %s, %s, %s, %s)",
+                    (user_name, phone, problem, date, "telegram")
+                )
+                conn.commit()
 
-    bot.send_message(
-        message.chat.id,
-        "✅ Ваша заявка сохранена! Наш мастер скоро свяжется с вами 💙",
-        reply_markup=main_menu()
-    )
+        bot.send_message(
+            message.chat.id,
+            "✅ Ваша заявка сохранена! Наш мастер скоро свяжется с вами 💙",
+            reply_markup=main_menu()
+        )
 
-    bot.send_message(
-        ADMIN_ID,
-        f"📬 *Новая заявка!*\n"
-        f"👤 Имя: {user_name}\n"
-        f"📞 Телефон: {phone}\n"
-        f"💬 Проблема: {problem}\n"
-        f"🕒 Время: {date}",
-        parse_mode="Markdown"
-    )
+        bot.send_message(
+            ADMIN_ID,
+            f"📬 *Новая заявка из Telegram!*\n"
+            f"👤 Имя: {user_name}\n"
+            f"📞 Телефон: {phone}\n"
+            f"💬 Проблема: {problem}\n"
+            f"🕒 Время: {date}",
+            parse_mode="Markdown"
+        )
+
+        print(f"✅ Заявка из Telegram сохранена: {user_name}, {phone}, {problem}")
+
+    except Exception as e:
+        print(f"❌ Ошибка при сохранении заявки из Telegram: {e}")
+        bot.send_message(
+            message.chat.id,
+            "⚠️ Произошла ошибка при сохранении заявки. Попробуйте позже 🙏",
+            reply_markup=main_menu()
+        )
 
 
 # === Основное меню ===
