@@ -325,13 +325,13 @@ def get_problem(message, user_name, phone):
     date = datetime.now().strftime("%Y-%m-%d %H:%M")
 
     try:
-       with get_db_connection() as conn:
-           with conn.cursor() as cur:
-               cur.execute("""
-                   INSERT INTO requests (name, phone, problem, date, source)
-                   VALUES (%s, %s, %s, NOW(), %s)
-                        """, (user_name, phone, problem, "telegram"))
-            conn.commit()
+        with get_db_connection() as conn:
+            with conn.cursor() as cur:
+                cur.execute("""
+                    INSERT INTO requests (name, phone, problem, source)
+                    VALUES (%s, %s, %s, %s)
+                """, (user_name, phone, problem, "telegram"))
+                conn.commit()
 
         bot.send_message(
             message.chat.id,
@@ -358,6 +358,7 @@ def get_problem(message, user_name, phone):
             "⚠️ Произошла ошибка при сохранении заявки. Попробуйте позже 🙏",
             reply_markup=main_menu()
         )
+
 
 
 # === Основное меню ===
