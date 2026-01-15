@@ -1,99 +1,70 @@
-// 1. Добавляем проверку на существование Telegram.WebApp
 function sendForm(name, phone, problem) {
+  console.log("1. Начало отправки формы");
+  console.log("Данные:", { name, phone, problem });
+  
   if (!window.Telegram?.WebApp) {
-    console.error('Telegram.WebApp не доступен');
-    alert('Откройте приложение через Telegram');
+    console.error("2. Telegram.WebApp не найден!");
+    alert("Ошибка: Откройте приложение через Telegram");
     return;
   }
-
+  
+  console.log("3. Telegram.WebApp доступен");
+  const tg = Telegram.WebApp;
+  
   const payload = {
     name: name,
     phone: phone,
     problem: problem,
     source: "webapp",
-    // Добавляем timestamp для уникальности
     timestamp: Date.now()
   };
-
-  console.log('Отправляю данные:', payload);
+  
+  console.log("4. Отправляемый payload:", payload);
   
   try {
-    Telegram.WebApp.sendData(JSON.stringify(payload));
-    // Не закрываем сразу - даем Telegram обработать отправку
+    console.log("5. Вызов tg.sendData()");
+    tg.sendData(JSON.stringify(payload));
+    
+    console.log("6. Данные отправлены, закрываем приложение через 500мс");
     setTimeout(() => {
-      Telegram.WebApp.close();
-    }, 300);
+      tg.close();
+      console.log("7. Приложение закрыто");
+    }, 500);
+    
   } catch (error) {
-    console.error('Ошибка отправки:', error);
-    alert('Ошибка отправки: ' + error.message);
+    console.error("8. Ошибка при отправке:", error);
+    alert("Ошибка при отправке: " + error.message);
   }
 }
 
-function sendId(id) {
-  if (!window.Telegram?.WebApp) {
-    console.error('Telegram.WebApp не доступен');
-    return;
+// Инициализация
+document.addEventListener('DOMContentLoaded', function() {
+  console.log("DOM загружен");
+  
+  if (window.Telegram?.WebApp) {
+    console.log("Telegram WebApp обнаружен");
+    Telegram.WebApp.ready();
+    Telegram.WebApp.expand();
+    console.log("User ID:", Telegram.WebApp.initDataUnsafe?.user?.id);
   }
   
-  console.log('Отправляю ID:', id);
-  Telegram.WebApp.sendData(id.toString());
-  setTimeout(() => {
-    Telegram.WebApp.close();
-  }, 300);
-}
-
-// 2. Инициализируем Telegram WebApp при загрузке страницы
-document.addEventListener('DOMContentLoaded', function() {
-  // Проверяем, запущены ли мы в Telegram
-  if (window.Telegram?.WebApp) {
-    const tg = Telegram.WebApp;
-    tg.ready(); // Важно: сообщаем Telegram что приложение готово
-    tg.expand(); // Разворачиваем на весь экран
-    
-    console.log('Telegram WebApp инициализирован');
-    console.log('User ID:', tg.initDataUnsafe?.user?.id);
-  } else {
-    console.warn('Запущено вне Telegram. Для теста создан mock-объект.');
-    // Мок для тестирования в браузере
-    window.Telegram = {
-      WebApp: {
-        sendData: function(data) {
-          console.log('MOCK: Данные отправлены:', data);
-          alert('Тест: Данные отправлены. В Telegram они уйдут боту.');
-        },
-        close: function() {
-          console.log('MOCK: Приложение закрыто');
-        },
-        ready: function() {},
-        expand: function() {},
-        initDataUnsafe: {}
-      }
-    };
-  }
-
-  // 3. Вешаем обработчик на кнопку
-  const sendBtn = document.getElementById("sendBtn");
-  if (sendBtn) {
-    sendBtn.addEventListener("click", function() {
+  const btn = document.getElementById("sendBtn");
+  if (btn) {
+    btn.addEventListener("click", function() {
+      console.log("Кнопка нажата!");
+      
       const name = document.getElementById("name")?.value.trim();
       const phone = document.getElementById("phone")?.value.trim();
       const problem = document.getElementById("problem")?.value.trim();
-
-      // Валидация
+      
+      console.log("Собранные данные:", { name, phone, problem });
+      
       if (!name || !phone || !problem) {
-        alert('Заполните все поля!');
+        alert("Заполните все поля!");
         return;
       }
-
-      if (phone.length < 5) {
-        alert('Введите корректный номер телефона');
-        return;
-      }
-
-      console.log('Данные для отправки:', { name, phone, problem });
+      
       sendForm(name, phone, problem);
     });
-  } else {
-    console.error('Кнопка #sendBtn не найдена!');
   }
 });
