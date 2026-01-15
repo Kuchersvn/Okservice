@@ -18,14 +18,9 @@
       padding: 50px 20px 20px;
     }
 
-    .logo-img {
+    header img {
       width: 180px;
-      height: 180px;
-      border-radius: 50%;
-      object-fit: cover;
-      border: 3px solid #FFD700;
       animation: breathing 4s ease-in-out infinite;
-      margin-bottom: 20px;
     }
 
     @keyframes breathing {
@@ -133,59 +128,12 @@
       text-decoration: underline;
     }
 
-    /* Уведомления */
-    .notification {
-      position: fixed;
-      bottom: -80px;
-      left: 50%;
-      transform: translateX(-50%);
-      background: linear-gradient(90deg, #FFD700, #000);
-      color: white;
-      padding: 15px 25px;
-      border-radius: 30px;
-      font-weight: 600;
-      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
-      opacity: 0;
-      transition: all 0.5s ease;
-      z-index: 9999;
-    }
-
-    .notification.show {
-      bottom: 30px;
-      opacity: 1;
-    }
-
-    .notification.error {
-      background: linear-gradient(90deg, #ff4d4d, #000);
-    }
-
-    @media (max-width: 768px) {
-      .logo-img {
-        width: 120px;
-        height: 120px;
-      }
-      
-      h1 {
-        font-size: 1.6em;
-      }
-      
-      .card {
-        width: 100%;
-        max-width: 300px;
-      }
-    }
   </style>
 </head>
 <body>
 
   <header>
-    <!-- ВАРИАНТ 1: Логотип из интернета -->
-    <img src="https://images.unsplash.com/photo-1550745165-9bc0b252726f?w=600&auto=format&fit=crop" 
-         alt="OkService Логотип" class="logo-img">
-    
-    <!-- ВАРИАНТ 2: Без логотипа, только текст -->
-    <!-- <div class="logo-placeholder">🛠️</div> -->
-    
+    <img src="/static/logo.jpg" alt="OkService" class="logo-img">
     <h1>OkService — ремонт компьютеров и ноутбуков</h1>
   </header>
 
@@ -223,9 +171,6 @@
     <p>© 2025 OkService | <a href="https://okservice.onrender.com" target="_blank">okservice.kz</a></p>
   </footer>
 
-  <!-- Уведомление -->
-  <div id="notification" class="notification"></div>
-
   <script>
     async function sendRequest() {
       const name = document.getElementById('name').value.trim();
@@ -233,14 +178,7 @@
       const message = document.getElementById('message').value.trim();
 
       if (!name || !phone || !message) {
-        showNotification("⚠️ Пожалуйста, заполните все поля.", "error");
-        return;
-      }
-
-      // Проверка телефона
-      const phoneRegex = /^[\d\s\-\+\(\)]+$/;
-      if (!phoneRegex.test(phone) || phone.replace(/\D/g, '').length < 10) {
-        showNotification("⚠️ Введите корректный номер телефона", "error");
+        alert("Пожалуйста, заполните все поля.");
         return;
       }
 
@@ -250,56 +188,109 @@
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ name, phone, message })
         });
+        const result = await res.json().catch(() => ({}));
 
-        const result = await res.json().catch(() => ({ status: 'error' }));
-
-        if (res.ok && result.status === "success") {
-          showNotification("✅ Заявка успешно отправлена! Мы скоро свяжемся с вами.", "success");
-          // Очищаем форму
-          document.getElementById('name').value = "";
-          document.getElementById('phone').value = "";
-          document.getElementById('message').value = "";
-        } else {
-          showNotification("❌ Ошибка при отправке. Попробуйте позже.", "error");
-        }
-      } catch (e) {
-        showNotification("⚠️ Ошибка соединения с сервером.", "error");
+if (res.ok && result.status === "success") {
+  alert("✅ Заявка успешно отправлена! Мы скоро свяжемся с вами.");
+} else {
+  alert("❌ Ошибка при отправке. Попробуйте позже.");
+}
+  } catch (e) {
+        alert("⚠️ Ошибка соединения с сервером.");
       }
     }
-
-    // Показ уведомления
-    function showNotification(text, type) {
-      const notif = document.getElementById("notification");
-      notif.textContent = text;
-      notif.className = "notification " + (type === "error" ? "error" : "");
-      notif.classList.add("show");
-
-      setTimeout(() => notif.classList.remove("show"), 3000);
-    }
-
-    // Форматирование телефона
-    document.getElementById('phone').addEventListener('input', function(e) {
-      let value = e.target.value.replace(/\D/g, '');
-      
-      if (value.length === 0) {
-        e.target.value = '';
-        return;
-      }
-      
-      // Форматирование российского номера
-      if (value.length <= 1) {
-        e.target.value = '+7 (' + value;
-      } else if (value.length <= 4) {
-        e.target.value = '+7 (' + value.substring(1, 4);
-      } else if (value.length <= 7) {
-        e.target.value = '+7 (' + value.substring(1, 4) + ') ' + value.substring(4, 7);
-      } else if (value.length <= 9) {
-        e.target.value = '+7 (' + value.substring(1, 4) + ') ' + value.substring(4, 7) + '-' + value.substring(7, 9);
-      } else {
-        e.target.value = '+7 (' + value.substring(1, 4) + ') ' + value.substring(4, 7) + '-' + value.substring(7, 9) + '-' + value.substring(9, 11);
-      }
-    });
   </script>
+
+<!-- Подключаем Яндекс.Карты -->
+<script src="89365d8b-7ca4-4097-aa3f-917b3704ac50"></script>
+<script>
+ymaps.ready(init);
+function init() {
+    var map = new ymaps.Map("map", {
+        center: [51.221450, 51.363653], // координаты Уральска
+        zoom: 16
+    });
+    var placemark = new ymaps.Placemark([51.221450, 51.363653], {
+        balloonContent: "Ок Service — пр. Н. Назарбаева, 240/1"
+    });
+    map.geoObjects.add(placemark);
+}
+</script>
+
+<!-- 🔔 Уведомление -->
+<div id="notification" class="notification"></div>
+
+<script>
+  async function sendRequest() {
+    const name = document.getElementById('name').value.trim();
+    const phone = document.getElementById('phone').value.trim();
+    const message = document.getElementById('message').value.trim();
+
+    if (!name || !phone || !message) {
+      showNotification("⚠️ Пожалуйста, заполните все поля.", "error");
+      return;
+    }
+
+    try {
+      const res = await fetch("/send_request", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, phone, message })
+      });
+
+      if (res.ok) {
+        showNotification("✅ Заявка отправлена! Мы скоро свяжемся с вами.", "success");
+        document.getElementById('name').value = "";
+        document.getElementById('phone').value = "";
+        document.getElementById('message').value = "";
+      } else {
+        showNotification("❌ Ошибка при отправке. Попробуйте позже.", "error");
+      }
+    } catch (e) {
+      showNotification("⚠️ Ошибка соединения с сервером.", "error");
+    }
+  }
+
+  // 🔔 Показ уведомления
+  function showNotification(text, type) {
+    const notif = document.getElementById("notification");
+    notif.textContent = text;
+
+    notif.style.background = (type === "error")
+      ? "linear-gradient(90deg, #ff4d4d, #000)"
+      : "linear-gradient(90deg, #FFD700, #000)";
+
+    notif.classList.add("show");
+
+    setTimeout(() => notif.classList.remove("show"), 3000);
+  }
+</script>
+
+<style>
+  .notification {
+    position: fixed;
+    bottom: -80px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: linear-gradient(90deg, #FFD700, #000);
+    color: white;
+    padding: 15px 25px;
+    border-radius: 30px;
+    font-weight: 600;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+    opacity: 0;
+    transition: all 0.5s ease;
+    z-index: 9999;
+  }
+
+  .notification.show {
+    bottom: 30px;
+    opacity: 1;
+  }
+</style>
 
 </body>
 </html>
+
+
+
